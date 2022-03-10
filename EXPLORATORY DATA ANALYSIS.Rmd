@@ -1,0 +1,284 @@
+---
+title: "Exploratory Data Analysis Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+getwd()
+setwd("//Users//datalab//Desktop//DATALAB//DATALAB//Python//Data cleaning")
+```
+
+LOADING YOUR DATASET
+
+```{r}
+automobile <- read_csv("cars.csv")
+```
+view the dataset
+```{r}
+head(automobile, n=30)
+View(automobile)
+```
+
+to check for how many rows and columns
+```{r}
+dim(automobile)
+```
+
+to get more information about the dataset
+```{r}
+str(automobile)
+```
+
+```{r}
+summary(automobile)
+```
+replacing the ? with Na
+
+```{r}
+automobile[automobile == "?"] <-NA 
+automobile[automobile == "-"] <- NA
+```
+
+```{r}
+#Check missing values in columns
+#Some columns have noticeable numbers of NAs
+colMeans(is.na(automobile))*100
+```
+
+```{r}
+summary(is.na(automobile))
+```
+
+```{r}
+glimpse(automobile)
+```
+
+```{r}
+# replacing the NA in MPG with the mean
+automobile$MPG[is.na(automobile$MPG)] <- floor(mean(automobile$MPG, na.rm = T))
+automobile
+```
+
+```{r}
+summary(is.na(automobile))
+```
+
+```{r}
+# replacing the NA in Cylinder with the mean
+automobile$Cylinders[is.na(automobile$Cylinders)] <- (median(automobile$Cylinders, na.rm = T))
+automobile
+```
+
+
+droping the na 
+```{r}
+automobile <- na.omit(automobile)
+```
+
+```{r}
+summary(is.na(automobile))
+```
+
+```{r}
+dim(automobile)
+```
+
+```{r}
+head(automobile, n=10)
+```
+
+```{r}
+str(automobile)
+```
+
+```{r}
+#Drop the string column 'Model' since its not needed for our ML
+automobile <- automobile %>%
+  select(-Model)
+automobile
+```
+
+```{r}
+#droping a list of columns
+#Scale down your dataset by removing some columns.
+automobile <- automobile %>%
+  select(-c(bore, stroke,'compression-ratio'))
+
+automobile
+#automobile <-  select(automobile, -'compression-ratio')
+```
+
+```{r}
+#Check the Unique values of Year in the dataset and how many times they occur
+
+table(automobile$Year)
+```
+
+replacing the value that has multiple values
+```{r}
+automobile$Year[automobile$Year == "1970, 1976"] <-1970
+automobile$Year[automobile$Year == "1970[1975]"] <-1970
+automobile$Year[automobile$Year == "1971[1973]"] <-1971
+automobile$Year[automobile$Year == "1971[1973]971"] <-1971
+automobile$Year[automobile$Year == "1972-73"] <-1972
+automobile$Year[automobile$Year == "1972[1973]"] <-1972
+automobile$Year[automobile$Year == "1973, 1974"] <-1973
+automobile$Year[automobile$Year == "1973, 19741973"] <-1973
+automobile$Year[automobile$Year == "1973-1974"] <-1973
+automobile$Year[automobile$Year == "1974, 1975"] <-1974
+automobile$Year[automobile$Year == "1974, 19751974"] <-1974
+automobile$Year[automobile$Year == "1982-1985"] <-1982
+```
+
+checking the datatype using the str()
+
+```{r}
+str(automobile)
+```
+
+converting the year to numeric 
+```{r}
+automobile$Year <-  as.factor(automobile$Year)
+automobile$Cylinders <- as.integer(automobile$Cylinders)
+automobile$Horsepower <- as.integer(automobile$Weight)
+automobile$Displacement <- as.numeric(automobile$Displacement)
+automobile$Acceleration <- as.numeric(automobile$Acceleration)
+```
+
+```{r}
+str(automobile)
+```
+
+
+```{r}
+#Check the Unique categories of Origin in the dataset
+#Some Countries have specific state names attached
+
+unique(automobile$Origin)
+```
+
+```{r}
+
+automobile$Year[automobile$Year == "1970, 1976"] <-1970
+automobile$Year[automobile$Year == "1970[1975]"] <-1970
+```
+
+```{r}
+#Where 'US' appears concantinate all under a common name 'US'
+automobile$Origin <- sub("^US.*", "US", automobile$Origin)
+automobile$Origin <- sub("^Europe.*", "Europe", automobile$Origin)
+automobile$Origin <- sub("^Japan.*", "Japan", automobile$Origin)
+
+```
+
+```{r}
+todate <- as.numeric(format(Sys.time(), "%Y"))
+todate
+automobile$Age <- todate -automobile$Year
+```
+
+```{r}
+View(automobile)
+```
+
+```{r}
+summary(automobile)
+```
+Visualizing Relationships
+
+```{r}
+#Sys.Date()
+library(ggplot2)
+library(help = "ggplot2")
+```
+
+
+```{r}
+ggplot(automobile, aes(MPG)) + geom_bar() +
+  ylab("number of orders") +
+  xlab("") +
+  ggtitle("Number of Orders over Time")
+  
+```
+
+```{r}
+colnames(automobile)
+```
+
+```{r}
+ggplot(automobile, aes(Acceleration, MPG, colour = Origin)) + 
+  geom_point()+
+  ylab("Mile per gallon") +
+  xlab("Acceleration") +
+  ggtitle("Acceleration vs Miles per gallon") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+
+```{r}
+ggplot(automobile, aes(Cylinders, MPG, colour = Origin)) + 
+  geom_point()+
+  ylab("Mile per gallon") +
+  xlab("Number of Cylinders") +
+  ggtitle("Number of Cylinders vs Miles per gallon") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+```{r}
+ggplot(automobile, aes(Weight, MPG, colour = Origin)) + 
+  geom_point()+
+  ylab("Mile per gallon") +
+  xlab("Weight") +
+  ggtitle("Displacement vs Miles per gallon") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+```{r}
+ggplot(automobile, aes(Weight, MPG, colour = Origin)) + 
+  geom_point()+
+  ylab("Mile per gallon") +
+  xlab("Weight") +
+  ggtitle("Displacement vs Miles per gallon") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+
+```{r}
+ggplot(automobile, aes(MPG, colour = Origin)) +
+  geom_histogram(bins = 15)
+```
+
+```{r}
+ggplot(automobile, aes(Weight, MPG, colour = Origin)) + 
+  geom_point()+
+  ylab("Mile per gallon") +
+  xlab("Weight") +
+  ggtitle("Displacement vs Miles per gallon") +
+  theme(plot.title=element_text(hjust=0.5))
+```
+
+```{r}
+ggplot(automobile) +
+  geom_bar(aes(x=Cylinders, color= Origin)) +
+  coord_polar()
+```
+# to check for outlier
+```{r}
+ggplot(automobile, aes(x=as.factor(Cylinders), y=MPG)) + 
+    geom_boxplot(fill="slateblue", alpha=0.2) + 
+    xlab("Number of Cylinder")+
+    ylab("Mile per gallon")
+```
+
+```{r}
+automobile %>% tail(100) %>%
+  ggplot(aes(x=Year, y=MPG, color = Origin) ) +
+    geom_line(color="grey") +
+    ggtitle("Miles per gallon vs year")
+```
+
